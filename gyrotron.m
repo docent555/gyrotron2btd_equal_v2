@@ -136,7 +136,8 @@ TauAxis = (0:dtau:TauEnd)';
     fclose(fileID);
     
     % kpar2 = kpar2 + Delta - 1i*e;
-    kpar2(:) = 0;
+    kpar2(:) = -Delta/kappa(1);
+    Delta = 0;
 % END Вычисление kpar2 
 
 InitialField = zeros(Nz,1);

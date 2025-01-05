@@ -34,7 +34,7 @@ B1 = complex(zeros(1,Nt));
 Sigma0 = complex(zeros(1,Nt));
 Sigma1 = complex(zeros(1,Nt));
 fmax = zeros(Nt, 1);
-jmax = zeros(Nt, 1);
+Jmax = zeros(Nt, 1);
 field = complex(zeros(Nz,1));
 testfield = complex(zeros(Nz,1));
 field_p = complex(zeros(Nz,1));
@@ -53,9 +53,8 @@ Omega = zeros(1,Nt);
 ConLow = zeros(1,Nt);
 ZAxis_ipart = ZAxis(ZAxis <= ZAxisi(end));
 ZAxis_ipart_end = length(ZAxis_ipart);
-% theta = zeros(Nz, Ne);
-% p = zeros(Nz, Ne);
-% pv = zeros(Nz, 2*Ne);
+p = zeros(Nzi, Ne);
+% pv = zeros(Nzi, 2*Ne);
 % p0 = zeros(Ne,1);
 % p0v = zeros(2*Ne,1);
 % reidx = zeros(1,Ne);
@@ -90,8 +89,8 @@ C0 = s;
 % CR = -1i*kpar2(Nz);
 CL = -1i;
 CR = -1i;
-% C1 = 1/sqrt(1i*pi*s);
-C1 = 0;
+C1 = 1/sqrt(1i*pi*s);
+% C1 = 0;
 C2 = 1/sqrt(1i*pi*s);
 
 E = 1i*C0/3*dz/dt./kappa;
@@ -114,7 +113,8 @@ imidx = Ne+1:2*Ne;
 
 optsp = odeset('RelTol',1e-8,'AbsTol',1e-10);
 SF = griddedInterpolant(ZAxis, field, 'spline');
-p = oscill_ode(SF, Nzi, ZAxisi, Delta, p0v, reidx, imidx, optsp);
+% p = oscill_ode(SF, Nzi, ZAxisi, Delta, p0v, reidx, imidx, optsp);
+p(:,:) = repmat(p0,Nzi,1);
 Jref(:) = Ib(1) * sum(p, 2)/Ne;
 SJ = griddedInterpolant(ZAxisi, Jref,'spline');
 J(1:ZAxis_ipart_end,1) = SJ(ZAxis_ipart);
@@ -122,7 +122,7 @@ B(:,1) = J(:) - 1i*kpar2(:).*field(:);
 OUTJ(:,jout) = J(IZ,1);
 
 fmax(IDX(0)) = max(abs(field(:,1)));
-jmax(IDX(0)) = max(abs(B(:,1)));
+Jmax(IDX(0)) = max(abs(J(:,1)));
 F0(IDX(0)) = field(1);
 F1(IDX(0)) = field(2);
 B0(IDX(0)) = B(1);
@@ -278,6 +278,7 @@ for step=1:Nt-1
         err = maxdiff/maxfield;
         if err < tol
             field(:,1) = field_p(:,1);
+            J(:,1) = J_p(:,1);
             p(:,:) = p_p(:,:);
             B(:,1) = B_p(:,1);
             break
@@ -290,7 +291,7 @@ for step=1:Nt-1
     end
   
     fmax(IDX(step)) = max(abs(field(:,1)));
-    jmax(IDX(step)) = max(abs(B(:,1)));
+    Jmax(IDX(step)) = max(abs(J(:,1)));
 
     F0(IDX(step)) =  field(1);
     F1(IDX(step)) = field(2);
@@ -336,7 +337,7 @@ for step=1:Nt-1
     zabey = repmat('\b', 1, 162);
     fprintf(zabey + ...
         "Step = %8i   Time = %10.4f   Fmax = % 15.10e   Jmax = % 15.10e   W = % 15.10e   E = % 15.10e   CL = % 15.5f %%",...
-        int64(step), TAxis(k), fmax(k), max(abs(B(:,1))), Omega(IDX(step)), Eff(IDX(step)), ConLow(IDX(step)));
+        int64(step), TAxis(k), fmax(k), Jmax(k), Omega(IDX(step)), Eff(IDX(step)), ConLow(IDX(step)));
 end
 
 OUTJ(:,jout) = J(IZ,1);
